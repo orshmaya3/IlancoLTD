@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>טופס הזנת תוכנית ייצור</title>
+</head>
+<body>
+  <h1>טופס הזנת תוכנית ייצור</h1>
+  <form action="/submit-production" method="post">
+    <label>תאריך:</label>
+    <input type="date" name="date" required><br><br>
+
+    <label>כמות:</label>
+    <input type="number" name="quantity" required><br><br>
+
+    <label>סטטוס:</label>
+    <select name="status" required>
+    <option value="">-- בחרי סטטוס --</option>
+    <option value="מתוכנן">מתוכנן</option>
+    <option value="בתהליך">בתהליך</option>
+    <option value="הושלם">הושלם</option>
+    <option value="בוטל">בוטל</option>
+    </select><br><br>
+
+    <label>הערות:</label>
+    <input type="text" name="notes"><br><br>
+
+    <label>לקוח:</label>
+    <input type="text" name="customer"><br><br>
+
+    <label>רמת עדיפות:</label>
+    <select name="priority" required>
+    <option value="">-- בחרי עדיפות --</option>
+    <option value="גבוהה">גבוהה</option>
+    <option value="בינונית">בינונית</option>
+    <option value="נמוכה">נמוכה</option>
+    </select><br><br>
+
+    <button type="submit">שמור</button>
+  </form>
+</body>
+</html>
+

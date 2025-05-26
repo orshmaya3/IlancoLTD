@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="he">
+<head>
+  <meta charset="UTF-8">
+  <title>עריכת תוכנית</title>
+  <style>
+    body {
+      direction: rtl;
+      font-family: Arial;
+      text-align: center;
+      margin-top: 50px;
+    }
+    form {
+      display: inline-block;
+      text-align: right;
+      padding: 20px;
+      border: 1px solid #ccc;
+    }
+    label, input, select {
+      display: block;
+      margin-bottom: 15px;
+      width: 300px;
+    }
+    button {
+      padding: 8px 16px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>🛠️ עריכת תוכנית ייצור</h1>
+
+  <form method="post">
+    <label>תאריך:</label>
+    <input type="date" name="date" value="{{ plan.date }}" required>
+
+    <label>כמות:</label>
+    <input type="number" name="quantity" value="{{ plan.quantity }}" required>
+
+    <label>סטטוס:</label>
+    <select name="status" required>
+      <option value="מתוכנן" {% if plan.status == 'מתוכנן' %}selected{% endif %}>מתוכנן</option>
+      <option value="בייצור" {% if plan.status == 'בייצור' %}selected{% endif %}>בהכנה</option>
+      <option value="ממתין לבקרת איכות" {% if plan.status == 'ממתין לבקרת איכות' %}selected{% endif %}>ממתין לבקרת איכות</option>
+      <option value="עבר בקרת איכות" {% if plan.status == 'עבר בקרת איכות' %}selected{% endif %}>עבר בקרת איכות</option>
+      <option value="בוצע" {% if plan.status == 'בוצע' %}selected{% endif %}>בוצע</option>
+    </select>
+
+    <label>הערות:</label>
+    <input type="text" name="notes" value="{{ plan.notes }}">
+
+    <label>לקוח:</label>
+    <input type="text" name="customer" value="{{ plan.customer }}">
+
+    <label>עדיפות:</label>
+    <select name="priority">
+      <option value="נמוכה" {% if plan.priority == 'נמוכה' %}selected{% endif %}>נמוכה</option>
+      <option value="בינונית" {% if plan.priority == 'בינונית' %}selected{% endif %}>בינונית</option>
+      <option value="גבוהה" {% if plan.priority == 'גבוהה' %}selected{% endif %}>גבוהה</option>
+    </select>
+
+    <button type="submit">💾 שמור שינויים</button>
+  </form>
+
+</body>
+</html>
