@@ -1,6 +1,6 @@
 from flask import Flask, render_template, request, redirect, session, url_for
 import requests
-from production import production_bp
+from routes.production import production_bp
 from db import get_db
 
 app = Flask(__name__)
