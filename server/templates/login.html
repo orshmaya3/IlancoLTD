@@ -1,23 +1,29 @@
+<!-- templates/login.html -->
 <!DOCTYPE html>
-<html>
+<html lang="he" dir="rtl">
 <head>
   <meta charset="UTF-8">
-  <title>התחברות</title>
+  <title>🔐 התחברות</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}">
+  <link href="https://fonts.googleapis.com/css2?family=Assistant:wght@400;600&display=swap" rel="stylesheet">
 </head>
 <body>
-  <h1>🔐 התחברות למערכת</h1>
-  <form method="post" action="/login">
-    <label>שם משתמש:</label><br>
-    <input type="text" name="username" required><br><br>
+  <div class="login-container">
+    <h1>🔐 התחברות למערכת</h1>
 
-    <label>סיסמה:</label><br>
-    <input type="password" name="password" required><br><br>
+    <form method="post" action="/login">
+      <label for="username">שם משתמש:</label>
+      <input type="text" id="username" name="username" required>
 
-    <button type="submit">התחבר</button>
-  </form>
+      <label for="password">סיסמה:</label>
+      <input type="password" id="password" name="password" required>
 
-  {% if error %}
-    <p style="color: red;">{{ error }}</p>
-  {% endif %}
+      <button type="submit">התחבר</button>
+    </form>
+
+    {% if error %}
+      <p class="error-msg">{{ error }}</p>
+    {% endif %}
+  </div>
 </body>
 </html>

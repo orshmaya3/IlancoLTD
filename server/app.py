@@ -7,6 +7,11 @@ app = Flask(__name__)
 app.secret_key = 'your_secret_key_here'
 app.register_blueprint(production_bp)
 
+@app.route('/')
+def index():
+    return redirect(url_for('login'))
+
+
 # 🧑‍💻 משתמשים ודמויות
 USERS = {
     "admin": {"password": "admin123", "role": "admin"},
@@ -73,6 +78,9 @@ def dashboard():
 
     # שליפת כל הנתונים מה-API
     response = requests.get('http://127.0.0.1:5000/api/production/')
+    if response.status_code != 200:
+        return f"<h2>❌ שגיאה בקבלת הנתונים</h2><pre>{response.text}</pre>"
+
     plans = response.json()
 
     # קריאת פרמטרים מהטופס
