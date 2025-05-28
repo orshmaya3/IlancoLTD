@@ -1,24 +1,28 @@
 from flask import Flask, render_template, request, redirect, session, url_for
 import requests
 from routes.production import production_bp
+from routes.quality import quality_bp
 from db import get_db
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key_here'
-app.register_blueprint(production_bp)
 
+# רישום מסלולי Blueprint
+app.register_blueprint(production_bp)
+app.register_blueprint(quality_bp)
+
+# דף פתיחה
 @app.route('/')
 def index():
     return redirect(url_for('login'))
 
-
-# 🧑‍💻 משתמשים ודמויות
+# משתמשים קיימים
 USERS = {
     "admin": {"password": "admin123", "role": "admin"},
     "operator": {"password": "operator123", "role": "operator"}
 }
 
-# 🔐 התחברות
+# התחברות
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -35,20 +39,20 @@ def login():
 
     return render_template('login.html')
 
-# 🚪 התנתקות
+# התנתקות
 @app.route('/logout')
 def logout():
     session.clear()
     return redirect('/login')
 
-# 📋 טופס הוספת תוכנית - זמין רק למנהל
+# טופס יצירת תוכנית ייצור
 @app.route('/form')
 def production_form():
     if session.get('role') != 'admin':
         return redirect(url_for('dashboard'))
     return render_template('production_form.html')
 
-# ✅ שליחת טופס תוכנית ייצור
+# שליחת טופס תוכנית ייצור
 @app.route('/submit-production', methods=['POST'])
 def submit_production():
     if session.get('role') != 'admin':
@@ -70,27 +74,26 @@ def submit_production():
     else:
         return f"<h2>❌ שגיאה בשמירה</h2><pre>{response.text}</pre>"
 
-# 📊 דאשבורד - זמין למפעיל ומנהל
+# דשבורד תוכניות ייצור
 @app.route('/dashboard')
 def dashboard():
     if session.get('role') not in ['admin', 'operator']:
         return redirect(url_for('login'))
 
-    # שליפת כל הנתונים מה-API
     response = requests.get('http://127.0.0.1:5000/api/production/')
     if response.status_code != 200:
         return f"<h2>❌ שגיאה בקבלת הנתונים</h2><pre>{response.text}</pre>"
 
     plans = response.json()
 
-    # קריאת פרמטרים מהטופס
+    # פרמטרים מהסינון
     status = request.args.get('status')
     priority = request.args.get('priority')
     from_date = request.args.get('from_date')
     to_date = request.args.get('to_date')
     customer = request.args.get('customer')
 
-    # סינון בפייתון
+    # סינון נתונים
     if status:
         plans = [p for p in plans if p['status'] == status]
     if priority:
@@ -104,7 +107,7 @@ def dashboard():
 
     return render_template('dashboard.html', plans=plans)
 
-# 🖊 עריכת תוכנית - רק למנהל
+# עריכת תוכנית
 @app.route('/edit/<int:plan_id>', methods=['GET', 'POST'])
 def edit_plan(plan_id):
     if session.get('role') != 'admin':
@@ -128,7 +131,6 @@ def edit_plan(plan_id):
     plan = db.execute('SELECT * FROM ProductionPlans WHERE id=?', (plan_id,)).fetchone()
     return render_template('edit_form.html', plan=plan)
 
-# ▶️ הרצת השרת
+# הרצת השרת
 if __name__ == '__main__':
     app.run(debug=True)
-    
