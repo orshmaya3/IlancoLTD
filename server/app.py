@@ -3,13 +3,21 @@ import requests
 from routes.production import production_bp
 from routes.quality import quality_bp
 from db import get_db
+from routes.dashboard import dashboard_bp
+from datetime import datetime, timedelta
+
+login_attempts = {}
+LOCKOUT_TIME = timedelta(minutes=10)
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key_here'
+app.permanent_session_lifetime = timedelta(minutes=15)  # ⏱️ זמן תפוגה לסשן
+
 
 # רישום מסלולי Blueprint
 app.register_blueprint(production_bp)
 app.register_blueprint(quality_bp)
+app.register_blueprint(dashboard_bp)
 
 # דף פתיחה
 @app.route('/')
@@ -25,6 +33,18 @@ USERS = {
 # התחברות
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+    ip = request.remote_addr
+    now = datetime.now()
+
+    # הגדרה כמה ניסיונות מותר
+    MAX_ATTEMPTS = 5
+
+    # בדיקת חסימה
+    if ip in login_attempts:
+        attempts, last_attempt = login_attempts[ip]
+        if attempts >= MAX_ATTEMPTS and now - last_attempt < LOCKOUT_TIME:
+            return render_template('login.html', error="⛔ נחסמת זמנית עקב ניסיונות מרובים. נסה שוב בעוד כמה דקות.")
+
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
@@ -32,12 +52,29 @@ def login():
 
         if user and user['password'] == password:
             session['username'] = username
-            session['role'] = user['role']
-            return redirect(url_for('dashboard'))
+            session['role'] = user['role'] 
+            session.permanent = True  # 🕒 הפיכת הסשן לקבוע עם תפוגה
+            login_attempts.pop(ip, None)  # איפוס לאחר הצלחה
+            return redirect(url_for('dashboard.main_dashboard'))
+        else:
+            # עדכון מונה ניסיונות
+            if ip in login_attempts:
+                attempts, _ = login_attempts[ip]
+                attempts += 1
+            else:
+                attempts = 1
+            login_attempts[ip] = (attempts, now)
 
-        return render_template('login.html', error="שם משתמש או סיסמה שגויים")
+            attempts_left = MAX_ATTEMPTS - attempts
+            if attempts_left <= 0:
+                error_msg = "⛔ הגעת למספר מקסימלי של ניסיונות. נסה שוב בעוד 10 דקות."
+            else:
+                error_msg = f"שגיאה. נותרו {attempts_left} ניסיונות לפני חסימה."
+
+            return render_template('login.html', error=error_msg)
 
     return render_template('login.html')
+
 
 # התנתקות
 @app.route('/logout')
@@ -130,6 +167,10 @@ def edit_plan(plan_id):
 
     plan = db.execute('SELECT * FROM ProductionPlans WHERE id=?', (plan_id,)).fetchone()
     return render_template('edit_form.html', plan=plan)
+
+
+
+
 
 # הרצת השרת
 if __name__ == '__main__':
