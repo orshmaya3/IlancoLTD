@@ -1,0 +1,47 @@
+/* static/css/dashboard.css */
+body {
+  direction: rtl;
+  padding: 30px;
+  font-family: 'Assistant', sans-serif;
+  background-color: #f7f9fc;
+}
+
+h1 {
+  text-align: center;
+  margin-bottom: 40px;
+  font-weight: 600;
+  color: #333;
+}
+
+.btn-add {
+  margin-bottom: 20px;
+}
+
+label {
+  font-weight: 500;
+  margin-bottom: 4px;
+}
+
+.table th, .table td {
+  text-align: center;
+  vertical-align: middle;
+}
+
+.table {
+  background-color: white;
+}
+
+.btn-outline-secondary {
+  font-size: 14px;
+  padding: 6px 12px;
+}
+
+@media (max-width: 768px) {
+  h1 {
+    font-size: 20px;
+  }
+
+  .row .col-md-2 {
+    margin-bottom: 10px;
+  }
+}
