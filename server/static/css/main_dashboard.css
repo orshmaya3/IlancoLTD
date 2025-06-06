@@ -1,23 +1,34 @@
+/* main_dashboard.css */
 body {
-    background-color: #f8f9fa;
-    font-family: 'Segoe UI', sans-serif;
+  background-color: #f8f9fa;
+  font-family: 'Segoe UI', sans-serif;
+  padding: 20px;
 }
 
 .stat-card {
-    transition: 0.3s;
-    border-radius: 16px;
-    border: none;
+  background-color: white;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+  transition: 0.3s;
 }
 
 .stat-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+  transform: translateY(-4px);
 }
 
-.stat-icon {
-    font-size: 2.5rem;
+.stat-title {
+  font-size: 14px;
+  color: #6c757d;
 }
 
-h2 {
-    font-weight: bold;
+.stat-value {
+  font-size: 28px;
+  font-weight: bold;
+  color: #212529;
+}
+
+h1 {
+  font-weight: bold;
+  margin-bottom: 30px;
 }

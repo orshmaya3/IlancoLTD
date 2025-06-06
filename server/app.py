@@ -142,7 +142,8 @@ def dashboard():
     if to_date:
         plans = [p for p in plans if p['date'] <= to_date]
 
-    return render_template('dashboard.html', plans=plans)
+    return render_template('production_dashboard.html', plans=plans)
+
 
 # עריכת תוכנית
 @app.route('/edit/<int:plan_id>', methods=['GET', 'POST'])

@@ -1,6 +1,5 @@
 from flask import Blueprint, render_template, session, redirect, url_for
 from db import get_db
-
 dashboard_bp = Blueprint('dashboard', __name__)
 
 @dashboard_bp.route('/main-dashboard')
@@ -10,19 +9,33 @@ def main_dashboard():
 
     db = get_db()
 
-    # כמות הזמנות פעילות
-    production_orders = db.execute('''
+    # סך הכול הזמנות ייצור
+    total_orders = db.execute('SELECT COUNT(*) FROM ProductionPlans').fetchone()[0]
+
+    # הזמנות פעילות (נניח שהן בסטטוס "בייצור")
+    active_orders = db.execute('''
         SELECT COUNT(*) FROM ProductionPlans
-        WHERE status NOT IN ('בוצע', 'מבוטל')
+        WHERE status = 'בייצור'
     ''').fetchone()[0]
 
-    # כמות בקרות איכות
+    # בדיקות איכות שבוצעו בפועל
     quality_checks = db.execute('''
         SELECT COUNT(*) FROM ProductionPlans
         WHERE quality_status IS NOT NULL
     ''').fetchone()[0]
 
-    # התפלגות בקרת איכות (Pass / Fail וכו׳)
+     # חדש: כמות תוכניות שממתינות לבקרת איכות
+    pending_quality = db.execute("SELECT COUNT(*) FROM ProductionPlans" 
+    " WHERE status = 'ממתין לבקרת איכות'").fetchone()[0]
+
+    # אחוז כשל
+    failed_checks = db.execute('''
+        SELECT COUNT(*) FROM ProductionPlans
+        WHERE quality_status = 'failed'
+    ''').fetchone()[0]
+    fail_rate = (failed_checks / quality_checks * 100) if quality_checks else 0
+
+    # נתוני עוגה - התפלגות בקרת איכות
     dist_results = db.execute('''
         SELECT quality_status, COUNT(*) FROM ProductionPlans
         WHERE quality_status IS NOT NULL
@@ -31,7 +44,7 @@ def main_dashboard():
     quality_labels = [row[0] for row in dist_results if row[0] is not None]
     quality_values = [row[1] for row in dist_results if row[1] is not None]
 
-    # גרף עמודות: כמות תוכניות לפי תאריך
+    # נתוני עמודות - כמות ייצור לפי תאריך
     bar_results = db.execute('''
         SELECT date, COUNT(*) as total FROM ProductionPlans
         GROUP BY date
@@ -41,16 +54,13 @@ def main_dashboard():
     bar_labels = [row[0] for row in reversed(bar_results) if row[0] is not None]
     bar_values = [row[1] for row in reversed(bar_results) if row[1] is not None]
 
-    # בדיקות סופיות (למניעת TypeError)
-    quality_labels = quality_labels or []
-    quality_values = quality_values or []
-    bar_labels = bar_labels or []
-    bar_values = bar_values or []
-
     return render_template("main_dashboard.html",
-                           production_orders=production_orders,
+                           total_orders=total_orders,
+                           active_orders=active_orders,
                            quality_checks=quality_checks,
-                           quality_labels=quality_labels,
-                           quality_values=quality_values,
-                           bar_labels=bar_labels,
-                           bar_values=bar_values)
+                            pending_quality=pending_quality  ,
+                           fail_rate=round(fail_rate, 1),
+                           quality_labels=quality_labels or [],
+                           quality_values=quality_values or [],
+                           bar_labels=bar_labels or [],
+                           bar_values=bar_values or [])
