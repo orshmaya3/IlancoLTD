@@ -30,8 +30,8 @@
         <label>מצב בקרה:</label>
         <select name="quality_status" class="form-select">
           <option value="">הכל</option>
-          <option value="passed" {% if request.args.get('quality_status') == 'passed' %}selected{% endif %}> 	✅ עבר </option>
-          <option value="failed" {% if request.args.get('quality_status') == 'failed' %}selected{% endif %}>❌ נכשל</option>
+          <option value="עבר" {% if request.args.get('quality_status') == 'עבר' %}selected{% endif %}> 	✅ עבר </option>
+          <option value="נכשל" {% if request.args.get('quality_status') == 'נכשל' %}selected{% endif %}>❌ נכשל</option>
           <option value="pending" {% if request.args.get('quality_status') == 'pending' %}selected{% endif %}>⏳ לא בוצע</option>
         </select>
       </div>
@@ -61,9 +61,9 @@
             <td>{{ row.customer }}</td>
             <td>{{ row.status }}</td>
             <td>
-                {% if row.quality_status == 'passed' %}
+                {% if row.quality_status == 'עבר' %}
                     <span class="text-success">✅ עבר</span>
-                {% elif row.quality_status == 'failed' %}
+                {% elif row.quality_status == 'נכשל' %}
                     <span class="text-danger">❌ נכשל</span>
                 {% else %}
                     <span class="text-secondary">⏳ לא בוצע</span>
@@ -81,4 +81,8 @@
         {% endfor %}
     </tbody>
 </table>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/quality_dashboard.js') }}"></script>
 {% endblock %}

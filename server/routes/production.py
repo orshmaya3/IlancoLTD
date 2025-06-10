@@ -11,13 +11,13 @@ production_bp = Blueprint('production', __name__, url_prefix='/api/production')
 @production_bp.route('/', methods=['GET'])
 def get_all_plans():
     db = get_db()
-    rows = db.execute("SELECT * FROM ProductionPlans").fetchall()
+    rows = db.execute("SELECT * FROM ProductionPlans ORDER BY id DESC").fetchall()
     return jsonify([dict(row) for row in rows])
  
 #  יצירת תוכנית ייצור חדשה
 @production_bp.route('/', methods=['POST'])
 def create_plan():
-   
+
     data = request.get_json()
 
     # בדיקת שדות חובה
@@ -85,3 +85,80 @@ def export_excel():
     return send_file(output, as_attachment=True,
                      download_name="production_plans.xlsx",
                      mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+
+
+@production_bp.route('/<int:plan_id>/update-status', methods=['POST'])
+def update_status(plan_id):
+    db = get_db()
+
+    # שלב ראשון: בדוק את הסטטוס הנוכחי
+    current = db.execute('SELECT status FROM ProductionPlans WHERE id = ?', (plan_id,)).fetchone()
+    if not current:
+        return jsonify({'error': 'תוכנית לא נמצאה'}), 404
+
+    if current['status'] in ['עבר בקרת איכות', 'נכשל בקרת איכות']:
+        return jsonify({'error': 'לא ניתן לעדכן תוכנית שעברה בקרת איכות'}), 403
+
+    # המשך עדכון
+    data = request.get_json()
+    new_status = data.get('status')
+
+    db.execute('UPDATE ProductionPlans SET status = ? WHERE id = ?', (new_status, plan_id))
+    db.commit()
+
+    return jsonify({'success': True, 'id': plan_id, 'new_status': new_status})
+
+@production_bp.route('/priority-distribution', methods=['GET'])
+def get_priority_distribution():
+    db = get_db()
+    rows = db.execute('''
+        SELECT priority, COUNT(*) as count
+        FROM ProductionPlans
+        GROUP BY priority
+    ''').fetchall()
+
+    distribution = {row['priority']: row['count'] for row in rows}
+    return jsonify(distribution)
+
+@production_bp.route('/edit/<int:plan_id>', methods=['GET', 'POST'])
+def edit_plan(plan_id):
+    db = get_db()
+
+    # בדיקת סטטוס לפני עדכון
+    current = db.execute('SELECT status FROM ProductionPlans WHERE id = ?', (plan_id,)).fetchone()
+    if not current:
+        return "תוכנית לא נמצאה", 404
+
+    if request.method == 'POST':
+        if current['status'] in ['עבר בקרת איכות', 'נכשל בקרת איכות']:
+            return "⛔ לא ניתן לערוך תוכנית שעברה בקרת איכות", 403
+
+        date = request.form['date']
+        quantity = request.form['quantity']
+        status = request.form['status']
+        priority = request.form['priority']
+        customer = request.form['customer']
+        notes = request.form['notes']
+
+        db.execute('''
+            UPDATE ProductionPlans
+            SET date = ?, quantity = ?, status = ?, priority = ?, customer = ?, notes = ?
+            WHERE id = ?
+        ''', (date, quantity, status, priority, customer, notes, plan_id))
+        db.commit()
+
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return jsonify(success=True)
+
+        return redirect(url_for('dashboard'))
+
+    # GET – שליפה להצגת התוכנית בטופס
+    plan = db.execute('SELECT * FROM ProductionPlans WHERE id = ?', (plan_id,)).fetchone()
+    return render_template('edit_plan.html', plan=plan)
+
+@production_bp.route('/delete/<int:plan_id>', methods=['POST'])
+def delete_plan(plan_id):
+    db = get_db()
+    db.execute('DELETE FROM ProductionPlans WHERE id = ?', (plan_id,))
+    db.commit()
+    return redirect(url_for('dashboard'))

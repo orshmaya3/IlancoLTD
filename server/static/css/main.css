@@ -39,3 +39,18 @@
   
 
 }
+
+.text-high {
+  color: #dc3545 !important; /* אדום */
+  font-weight: bold;
+}
+
+.text-medium {
+  color: #ffc107 !important; /* צהוב */
+  font-weight: bold;
+}
+
+.text-low {
+  color: #28a745 !important; /* ירוק */
+  font-weight: bold;
+}

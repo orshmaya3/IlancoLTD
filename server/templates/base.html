@@ -9,7 +9,6 @@
 
   <!-- קבצי עיצוב -->
   <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
 
   {% block head %}{% endblock %}
 </head>
@@ -46,6 +45,10 @@
       sidebar.classList.toggle("show");
     });
   </script>
+  {% block scripts %}{% endblock %}
+<script src="{{ url_for('static', filename='js/form-handler.js') }}"></script>
+
+
 
 </body>
 </html>

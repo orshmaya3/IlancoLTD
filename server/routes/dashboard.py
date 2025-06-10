@@ -31,7 +31,7 @@ def main_dashboard():
     # אחוז כשל
     failed_checks = db.execute('''
         SELECT COUNT(*) FROM ProductionPlans
-        WHERE quality_status = 'failed'
+        WHERE quality_status = 'נכשל'
     ''').fetchone()[0]
     fail_rate = (failed_checks / quality_checks * 100) if quality_checks else 0
 

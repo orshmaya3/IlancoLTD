@@ -4,64 +4,74 @@
 
 {% block head %}
   <link rel="stylesheet" href="{{ url_for('static', filename='css/main_dashboard.css') }}">
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 {% endblock %}
 
 {% block content %}
-<h1 class="text-center">📊 דשבורד ייצור</h1>
+<h1 class="text-center">📊 דשבורד מרכזי</h1>
 
 <!-- 🔹 כרטיסים עליונים בשורה אחת -->
 <div class="row mb-5 justify-content-center">
-  <div class="col-md-2 mb-3">
-    <div class="stat-card text-center">
+  <div class="col-md-2 mb-3 d-flex">
+    <div class="stat-card text-center w-100">
       <div class="stat-title">סה"כ הזמנות ייצור</div>
       <div class="stat-value">{{ total_orders }}</div>
     </div>
   </div>
-  <div class="col-md-2 mb-3">
-    <div class="stat-card text-center">
+  <div class="col-md-2 mb-3 d-flex">
+    <div class="stat-card text-center w-100">
       <div class="stat-title">הזמנות פעילות</div>
       <div class="stat-value">{{ active_orders }}</div>
     </div>
   </div>
-  <div class="col-md-2 mb-3">
-    <div class="stat-card text-center">
+  <div class="col-md-2 mb-3 d-flex">
+    <div class="stat-card text-center w-100">
       <div class="stat-title">בדיקות איכות</div>
       <div class="stat-value">{{ quality_checks }}</div>
     </div>
   </div>
-  <div class="col-md-2 mb-3">
-    <div class="stat-card text-center">
+  <div class="col-md-2 mb-3 d-flex">
+    <div class="stat-card text-center w-100">
       <div class="stat-title">אחוז כשל</div>
       <div class="stat-value">{{ fail_rate }}%</div>
     </div>
   </div>
-  <div class="col-md-2 mb-3">
-    <div class="stat-card text-center ">
+  <div class="col-md-2 mb-3 d-flex">
+    <div class="stat-card text-center w-100 ">
       <div class="stat-title ">ממתין לבקרת איכות</div>
       <div class="stat-value ">{{ pending_quality }}</div>
     </div>
   </div>
 </div>
 
-
-
 <!-- 🔸 גרפים -->
 <div class="row">
-  <!-- עוגה -->
-  <div class="col-md-6 mb-4">
-    <div class="card">
-      <div class="card-header bg-light fw-bold">התפלגות בקרת איכות</div>
-      <div class="card-body">
-        <canvas id="qualityPie"></canvas>
-      </div>
+  <!-- גרף עוגה – בקרת איכות -->
+ <div class="col-md-6 mb-4">
+  <div class="card small-card">
+    <div class="card-header bg-light">התפלגות בקרת איכות</div>
+    <div class="card-body">
+      <canvas id="qualityPie"></canvas>
     </div>
   </div>
+</div>
 
-  <!-- עמודות -->
-  <div class="col-md-6 mb-4">
+  <!-- גרף עוגה – עדיפות -->
+<div class="col-md-6 mb-4">
+  <div class="card small-card">
+    <div class="card-header bg-light">התפלגות עדיפות בתוכניות ייצור</div>
+    <div class="card-body">
+      <canvas id="priorityPieChart"></canvas>
+    </div>
+  </div>
+</div>
+
+
+<!-- גרף עמודות – כמות ייצור לפי תאריך -->
+<div class="row">
+  <div class="col-md-12 mb-4">
     <div class="card">
-      <div class="card-header bg-light fw-bold">כמות ייצור לפי תאריך</div>
+      <div class="card-header bg-light">כמות ייצור לפי תאריך</div>
       <div class="card-body">
         <canvas id="productionBar"></canvas>
       </div>
@@ -69,38 +79,21 @@
   </div>
 </div>
 
-<script>
-  const qualityLabels = {{ quality_labels|tojson }};
-  const qualityValues = {{ quality_values|tojson }};
-  new Chart(document.getElementById("qualityPie"), {
-    type: 'pie',
-    data: {
-      labels: qualityLabels,
-      datasets: [{
-        data: qualityValues,
-        backgroundColor: ['#dc3545', '#198754', '#ffc107', '#0dcaf0']
-            /*צבעים של התרשים עוגה */
-      }]
-    },
-    options: { responsive: true }
-  });
 
-  const barLabels = {{ bar_labels|tojson }};
-  const barValues = {{ bar_values|tojson }};
-  new Chart(document.getElementById("productionBar"), {
-    type: 'bar',
-    data: {
-      labels: barLabels,
-      datasets: [{
-        label: 'תוכניות ייצור',
-        data: barValues,
-        backgroundColor: '#0d6efd'
-      }]
-    },
-    options: {
-      responsive: true,
-      scales: { y: { beginAtZero: true } }
-    }
-  });
+
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+
+
+<script src="{{ url_for('static', filename='js/main_dashboard.js') }}"></script>
+<script>
+  window.qualityLabels = {{ quality_labels | tojson  }};
+  window.qualityValues = {{ quality_values | tojson }};
+  window.barLabels = {{ bar_labels | tojson }};
+  window.barValues = {{ bar_values | tojson }};
 </script>
 {% endblock %}

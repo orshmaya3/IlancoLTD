@@ -2,6 +2,11 @@ from flask import Blueprint, render_template, request, redirect, session, url_fo
 from db import get_db
 from io import BytesIO
 import openpyxl
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+from utils.send_quality_alert import send_quality_alert
+
 
 quality_bp = Blueprint('quality', __name__)
 
@@ -35,6 +40,7 @@ def quality_dashboard():
         SELECT id, date, customer, quality_status, quality_notes, status
         FROM ProductionPlans
         WHERE (quality_status IS NOT NULL OR status = 'ממתין לבקרת איכות')
+        
     '''
     params = []
 
@@ -55,9 +61,11 @@ def quality_dashboard():
     elif quality_status:
         query += ' AND quality_status = ?'
         params.append(quality_status)
+    else:
+        # תצוגת ברירת מחדל: כל מה שעבר בקרה או ממתין
+        query += ' AND (quality_status IS NOT NULL OR status = "ממתין לבקרת איכות")'
 
-
-    query += ' ORDER BY date DESC'
+    query += ' ORDER BY id DESC'
 
     checks = db.execute(query, params).fetchall()
 
@@ -70,11 +78,14 @@ def submit_quality(plan_id):
     if session.get('role') not in ['admin', 'operator']:
         return redirect(url_for('dashboard'))
 
-    result = request.form['quality_result']
+    result = request.form['quality_status']
     notes = request.form['notes']
+    if result not in ['עבר', 'נכשל']:
+        return "❌ ערך לא תקין בבקרת איכות", 400
+
 
     db = get_db()
-    new_status = 'עבר בקרת איכות' if result == 'passed' else 'בשלב ייצור'
+    new_status = 'עבר בקרת איכות' if result == 'עבר' else 'נכשל בקרת איכות'
 
     db.execute('''
         UPDATE ProductionPlans
@@ -83,7 +94,16 @@ def submit_quality(plan_id):
     ''', (result, notes, new_status, plan_id))
 
     db.commit()
-    return redirect('/dashboard')
+     # שליפת מידע על התוכנית עבור המייל
+    plan = db.execute('SELECT * FROM ProductionPlans WHERE id = ?', (plan_id,)).fetchone()
+    if plan:
+        send_quality_alert(
+            to_email='orshmaya3@gmail.com',  # שים כאן כתובת מייל שתרצה
+            plan_id=plan_id,
+            status=result,
+            customer=plan['customer']
+            )
+        return redirect('/dashboard')
 
 
 
@@ -123,3 +143,25 @@ def export_quality_excel():
     return send_file(output, as_attachment=True,
                      download_name="quality_checks.xlsx",
                      mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+
+def send_quality_email(plan_id, result):
+    sender = 'orshmaya3@gmail.com'
+    recipient = 'orshmaya3@gmail.com'
+    subject = f'עדכון בקרת איכות לתוכנית מס׳ {plan_id}'
+
+    body = f'תוכנית מספר {plan_id} { "עברה" if result == "עבר" else "נכשלה" } בקרת איכות.'
+
+    msg = MIMEMultipart()
+    msg['From'] = sender
+    msg['To'] = recipient
+    msg['Subject'] = subject
+    msg.attach(MIMEText(body, 'plain'))
+
+    try:
+        with smtplib.SMTP('smtp.gmail.com', 587) as server:
+            server.starttls()
+            server.login(sender, 'your_app_password')  # סיסמה/קוד אפליקציה
+            server.send_message(msg)
+            print(f' מייל נשלח בהצלחה עבור תוכנית {plan_id}')
+    except Exception as e:
+        print(f'❌ שגיאה בשליחת מייל: {e}')

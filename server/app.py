@@ -5,11 +5,19 @@ from routes.quality import quality_bp
 from db import get_db
 from routes.dashboard import dashboard_bp
 from datetime import datetime, timedelta
+import os
 
 login_attempts = {}
 LOCKOUT_TIME = timedelta(minutes=10)
+BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 
-app = Flask(__name__)
+
+
+app = Flask(
+    __name__,
+    static_folder=os.path.join(BASE_DIR, 'static'),
+    template_folder=os.path.join(BASE_DIR, 'templates'))
+
 app.secret_key = 'your_secret_key_here'
 app.permanent_session_lifetime = timedelta(minutes=15)  # ⏱️ זמן תפוגה לסשן
 
@@ -152,6 +160,12 @@ def edit_plan(plan_id):
         return redirect('/dashboard')
 
     db = get_db()
+    plan = db.execute('SELECT * FROM ProductionPlans WHERE id=?', (plan_id,)).fetchone()
+
+    # 🔒 חסימה עסקית – לא ניתן לערוך תוכניות שעברו או נכשלו בבקרה
+    if plan['status'] in ['עבר בקרת איכות', 'נכשל בקרת איכות']:
+        return "<h2 style='text-align:center; margin-top:50px;'>🔒 לא ניתן לערוך תוכנית שכבר עברה או נכשלה בבקרת איכות.</h2>", 403
+
 
     if request.method == 'POST':
         data = request.form

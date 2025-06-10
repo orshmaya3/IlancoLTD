@@ -1,5 +1,4 @@
-<!DOCTYPE html>
-<html lang="he" dir="rtl">
+
 {% extends 'base.html' %}
 {% block content %}
 <div class="container mt-4">
@@ -27,6 +26,7 @@
           <option value="בייצור">בייצור</option>
           <option value="ממתין לבקרת איכות">ממתין לבקרת איכות</option>
           <option value="עבר בקרת איכות">עבר בקרת איכות</option>
+          <option value="  נכשל בקרת איכות "> נכשל בקרת איכות</option>
           <option value="בוצע">בוצע</option>
         </select>
       </div>
@@ -79,7 +79,16 @@
         <td>{{ plan.id }}</td>
         <td>{{ plan.date }}</td>
         <td>{{ plan.quantity }}</td>
-        <td>{{ plan.status }}</td>
+        <td>
+          <select class="form-select form-select-sm quick-status" data-id="{{ plan.id }}">
+            <option value="מתוכנן" {% if plan.status == 'מתוכנן' %}selected{% endif %}>מתוכנן</option>
+            <option value="בייצור" {% if plan.status == 'בייצור' %}selected{% endif %}>בייצור</option>
+            <option value="ממתין לבקרת איכות" {% if plan.status == 'ממתין לבקרת איכות' %}selected{% endif %}>ממתין לבקרת איכות</option>
+             <option value="נכשל בקרת איכות" {% if plan.status == 'נכשל בקרת איכות' %}selected{% endif %}>נכשל בקרת איכות</option>
+            <option value="עבר בקרת איכות" {% if plan.status == 'עבר בקרת איכות' %}selected{% endif %}>עבר בקרת איכות</option>
+            <option value="בוצע" {% if plan.status == 'בוצע' %}selected{% endif %}>בוצע</option>
+          </select>
+        </td>
         <td>{{ plan.notes }}</td>
         <td>{{ plan.customer }}</td>
         <td>{{ plan.priority }}</td>
@@ -87,6 +96,13 @@
         {% if session['role'] == 'admin' %}
         <td>
           <a href="/edit/{{ plan.id }}" class="btn btn-outline-secondary btn-sm">✏️ ערוך</a>
+
+             <form method="POST" action="/api/production/delete/{{ plan.id }}"
+              onsubmit="return confirm('האם אתה בטוח שברצונך למחוק את התוכנית?')"
+              style="display:inline-block; margin-right: 5px;">
+          <button type="submit" class="btn btn-sm btn-danger">🗑 מחק</button>
+        </form>
+
         </td>
         {% endif %}
       </tr>
@@ -95,4 +111,7 @@
   </table>
 </div>
 {% endblock %}
-</html>
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/production_dashboard.js') }}"></script>
+{% endblock %}

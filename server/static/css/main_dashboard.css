@@ -32,3 +32,52 @@ h1 {
   font-weight: bold;
   margin-bottom: 30px;
 }
+/* 📊 כרטיסי גרפים אחידים */
+.card {
+  min-height: 350px;
+  display: flex;
+  flex-direction: column;
+}
+
+.card-header {
+  font-size: 16px;
+  font-weight: 600;
+  text-align: center;
+  min-height: 50px; /* מבטיח גובה אחיד */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+
+.card-body {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  }
+
+.chart-container {
+  max-width: 100%;
+  height: 300px;
+  margin: 0 auto;
+  position: relative;
+}
+
+.chart-container-small {
+  max-width: 100%;
+  height: 250px;
+  margin: 0 auto;
+  position: relative;
+}
+
+
+.small-card {
+  max-height: 550px;
+  padding: 20px;
+}
+
+.small-card canvas {
+  max-height: 420px;
+}
